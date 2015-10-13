@@ -1,0 +1,87 @@
+<html>
+<head>
+<style>
+#taskList input {
+  margin-left: 5px;
+}
+</style>
+</head>
+<body>
+<input id="taskInput" />
+<ul id="taskList">
+</ul>
+</body>
+<script>
+(function() {
+  var TodoApp = function(input, list){
+
+    this.input = document.getElementById(input);
+    console.log(this.input);
+    this.list = document.getElementById(list);
+    this.tasks = {};
+    this.taskCount = 0;
+    this.loadTasks();
+    this.addEvents();
+  }
+  TodoApp.prototype.loadTasks = function() {
+    var self=this;
+    this.tasks = JSON.parse(localStorage.getItem("todo-tasks"));
+    this.taskCount = parseInt(localStorage.getItem("todo-length"),10);
+    if(!this.taskCount) {
+      this.taskCount = 0;
+      localStorage.setItem("todo-length", 0);
+    }
+    if(this.tasks) {
+      var taskKeys = Object.keys(this.tasks);
+      var tasksLength = taskKeys.length;
+      for(var i=0; i<tasksLength; i++) {
+      	this.addElement(this.tasks[taskKeys[i]]);
+      }
+    } else {
+    	this.tasks = {};
+    }
+  }
+  TodoApp.prototype.addElement = function(text) {
+  	var self=this;
+  	var removeTask =function() {
+      console.log(this);
+      console.log(this.parentNode.querySelector('span'));
+      var child = this.parentNode;
+      var parent = child.parentNode;
+      parent.removeChild(child);
+      delete self.tasks[child.getAttribute("data-count")];
+      localStorage.setItem("todo-tasks", JSON.stringify(self.tasks));
+    }
+
+	var el=document.createElement("li");
+    el.setAttribute("data-count", this.taskCount);
+    el.innerHTML = "<span>" + text + "</span>";
+    var deleteBtn = document.createElement("input");
+    deleteBtn.setAttribute("type", "button");
+    deleteBtn.setAttribute("value", "Delete");
+    deleteBtn.addEventListener("click", removeTask, true);
+    el.appendChild(deleteBtn);
+    this.list.appendChild(el);
+
+  }
+  TodoApp.prototype.addEvents = function() {
+   var self=this;
+   var keyUpHandler = function(event) {
+      if(event.keyCode === 13) {
+        self.taskCount++;
+        self.addElement(self.input.value);
+        self.tasks[self.taskCount] = self.input.value;
+        localStorage.setItem("todo-tasks", JSON.stringify(self.tasks));
+        localStorage.setItem("todo-length", self.taskCount);
+      }
+    }
+
+    this.input.addEventListener("keyup", keyUpHandler, true);
+  }
+
+  new TodoApp("taskInput", "taskList");
+
+})()
+
+</script>
+</html>
